@@ -4,9 +4,7 @@ const request = extend({
     prefix: '',
     timeout: 1000000,
     requestType: 'form',
-    credentials: 'include'
 })
-
 
 /** 登陆  */
 export async function requestByUpload(
@@ -15,7 +13,7 @@ export async function requestByUpload(
     params?: {},
     options?: { [key: string]: any }
 ) {
-    request<any>('/api/file/presign', {
+    request('/api/file/presign', {
         method: 'POST',
         params,
         data: body,
@@ -30,11 +28,44 @@ export async function requestByUpload(
                 formdata.append(key, form[key])
             })
             formdata.append('file', file)
-            request<any>(res.data.presign_data.postURL, {
+            request(res.data.presign_data.postURL, {
                 method: 'POST',
                 params,
-                requestType: 'form',
                 body: formdata,
+                ...(options || {}),
+            }).then(res => {
+                console.log('图片上传成功')
+            }).catch(err => {
+                console.log('图片上传失败')
+            })
+        }
+    }).catch(err => {
+        console.log(err)
+    })
+}
+
+export async function requestByUploadOss(
+    body: any,
+    fileBody: any,
+    params?: {},
+    options?: { [key: string]: any }
+) {
+    console.log(fileBody)
+    request('/api/file/presign_oss', {
+        method: 'POST',
+        params,
+        data: body,
+        ...(options || {}),
+    }).then(res => {
+        console.log('presign_oss', res)
+        if (res.code === 200) {
+            request(res.data.url, {
+                method: 'PUT',
+                params,
+                headers: {
+                    "Content-Type": "application/octet-stream"
+                },
+                body: fileBody,
                 ...(options || {}),
             }).then(res => {
                 console.log('图片上传成功')
